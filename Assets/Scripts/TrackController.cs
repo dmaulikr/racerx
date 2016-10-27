@@ -2,12 +2,17 @@
 using System.Collections;
 
 public class TrackController : MonoBehaviour {
-    public GameObject[] trackChunks;
-    public int trackChunkCount = 5;
+
+    [Header("Track Chunk Prefabs")]
+    public TrackChunk[] trackChunks;
+
+    [Header("Editor Track Generator Parameters")]
+    public int length = 5;
+    public float difficulty = 0.5f;
+    public int seed = 42;
 
     // Use this for initialization
     void Start () {
-
 	}
 	
 	// Update is called once per frame
@@ -15,34 +20,42 @@ public class TrackController : MonoBehaviour {
 	
 	}
 
+    private TrackChunk GetRandomChunk(int heightDiff) {
+        TrackChunk chunk;
+        do {
+            chunk = trackChunks[Random.Range(0, trackChunks.Length)];
+        } while (chunk.heightDiff != heightDiff);
+
+        return chunk;
+    }
+
+    private void CreateTrack(int seed, int length, float difficulty) {
+        System.Random rand = new System.Random(seed);
+
+        bool done = false;
+        while (!done) {
+            string name = "RacingTrack" + rand.Next(10000).ToString();
+            GameObject trackBase = new GameObject(name);
+
+            TrackGenerator generator = new TrackGenerator(trackBase, rand, trackChunks);
+            generator.difficulty = difficulty;
+            generator.length = length;
+
+            try {
+                generator.GenerateTrack();
+                done = true;
+            } catch (TrackGenerator.InvalidTrackException) {
+                Destroy(trackBase);
+            }
+        }
+    }
+
     public void GenerateTrack() {
         if (trackChunks.Length == 0) {
             Debug.LogError("No track chunks are avaiable.");
             return;
         }
 
-        GameObject trackBase = new GameObject("RacingTrack" + Random.Range(0, 10000).ToString());
-        GameObject lastChunk = null;
-
-        for (int i = 0; i < trackChunkCount; i++) {
-            GameObject chunkTemplate = trackChunks[Random.Range(0, trackChunks.Length)];
-
-            GameObject newChunk = Instantiate(chunkTemplate);
-            newChunk.transform.SetParent(trackBase.transform);
-
-            if (lastChunk != null) {
-                MountPoint lastMp = lastChunk.GetComponentInChildren<MountPoint>();
-                if (lastMp == null) {
-                    Debug.LogError("Unable to find mount point in track chunk.");
-                    return;
-                }
-
-                newChunk.transform.position = lastMp.transform.position;
-                Debug.Log(lastMp.transform.position);
-                newChunk.transform.rotation = lastMp.transform.rotation;
-            }
-
-            lastChunk = newChunk;
-        }
+        CreateTrack(seed, length, difficulty);
     }
 }
