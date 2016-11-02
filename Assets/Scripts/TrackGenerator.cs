@@ -42,7 +42,6 @@ class TrackGenerator {
 
     private class TrackNode {
         public int rotation;
-        public GameObject trackChunk;
         public IntVector3 pos;
 
         public TrackChunk.ChunkType chunkType;
@@ -52,9 +51,8 @@ class TrackGenerator {
             this.pos = pos;
         }
 
-        public TrackNode(IntVector3 pos, int rotation, GameObject trackChunk) : this(pos) {
+        public TrackNode(IntVector3 pos, int rotation) : this(pos) {
             this.rotation = rotation;
-            this.trackChunk = trackChunk;
         }
 
         public override int GetHashCode() {
@@ -74,16 +72,16 @@ class TrackGenerator {
     public const int CHUNK_SIZE = 40;
     public const int CHUNK_HEIGHT = 10;
 
-    public const int MIN_LENGTH = 30;
-    public const int MAX_LENGTH = 1000;
-    public const int MAX_HEIGHT = 10;
+    public const int MIN_LENGTH = 20;
+    public const int MAX_LENGTH = 500;
 
     public const float HEIGHT_CHANGE_PROB = 0.2f;
     public const float DIRECTION_TURN_PROB = 0.9f;
 
-    public const int A_STAR_TIMEOUT = 100;
+    public const int INITIAL_GENERATION_TIMEOUT = 50;
+    public const int A_STAR_TIMEOUT = 50;
 
-    public const int FIRST_STRETCH_LEN = 5;
+    public const int FIRST_STRETCH_LEN = 3;
 
     private GameObject trackBase;
     private System.Random rand;
@@ -134,8 +132,13 @@ class TrackGenerator {
         bool done = false;
 
         int firstStretchLen = 0;
+        int countdown = INITIAL_GENERATION_TIMEOUT * length;
 
         while (!done) {
+            if (countdown-- < 0) {
+                throw new InvalidTrackException("Initial track generation timed out.");
+            }
+
             int heightDiff = 0;
             TrackChunk.ChunkType direction = TrackChunk.ChunkType.STRAIGHT;
 
@@ -145,7 +148,7 @@ class TrackGenerator {
                 }
 
                 // Decide Direction
-                if (heightDiff == 0 && rand.NextDouble() < DIRECTION_TURN_PROB * difficulty && firstStretchLen > 10) {
+                if (heightDiff == 0 && rand.NextDouble() < DIRECTION_TURN_PROB * difficulty) {
                     if (rand.NextDouble() < 0.5) {
                         direction = TrackChunk.ChunkType.CURVE_LEFT;
                     } else {
@@ -189,8 +192,7 @@ class TrackGenerator {
 
             nextPos.y += heightDiff;
 
-            GameObject chunk = GetChunkPrefab(direction, heightDiff);
-            TrackNode node = new TrackNode(cursor, currentRotation, chunk);
+            TrackNode node = new TrackNode(cursor, currentRotation);
             node.chunkType = direction;
             node.heightDiff = heightDiff;
             nodes.Add(node);
@@ -235,8 +237,7 @@ class TrackGenerator {
         open.AddLast(first);
 
         int countdown = A_STAR_TIMEOUT * length;
-
-        SearchNode lowest = null;
+        HashSet<IntVector3> currentPathPositions = new HashSet<IntVector3>();
 
         while (open.Count > 0) {
 
@@ -258,13 +259,16 @@ class TrackGenerator {
                 return true;
             }
 
-            if (lowest == null || lowest.g + lowest.h > current.g + current.h) {
-                lowest = current;
+            currentPathPositions.Clear();
+            SearchNode tmp = current;
+            while (tmp != null) {
+                currentPathPositions.Add(tmp.pos);
+                tmp = tmp.parent;
             }
 
             List<SearchNode> neighbours = GetNeighboursFor(nodes, current);
             foreach (SearchNode neighbour in neighbours) {
-                if (closed.Contains(neighbour)) {
+                if (closed.Contains(neighbour) || currentPathPositions.Contains(neighbour.pos)) {
                     continue;
                 }
 
@@ -314,12 +318,14 @@ class TrackGenerator {
         // Forward up
         if (!HasNodeAt(track, nextPos) && !HasNodeAt(track, nextPosUp)) {
             SearchNode n = new SearchNode(node, node.rotation, nextPosUp);
+            n.parentHeightDiff = 1;
             neighbours.Add(n);
         }
 
         // Forward Down
         if (!HasNodeAt(track, nextPos) && !HasNodeAt(track, nextPosDown)) {
             SearchNode n = new SearchNode(node, node.rotation, nextPosDown);
+            n.parentHeightDiff = -1;
             neighbours.Add(n);
         }
 
@@ -329,12 +335,14 @@ class TrackGenerator {
         // Left
         if (!HasNodeAt(track, nextPosLeft)) {
             SearchNode n = new SearchNode(node, ClampRotation(node.rotation - 90), nextPosLeft);
+            n.parentType = TrackChunk.ChunkType.CURVE_LEFT;
             neighbours.Add(n);
         }
 
         // Right
         if (!HasNodeAt(track, nextPosRight)) {
             SearchNode n = new SearchNode(node, ClampRotation(node.rotation + 90), nextPosRight);
+            n.parentType = TrackChunk.ChunkType.CURVE_RIGHT;
             neighbours.Add(n);
         }
 
@@ -352,8 +360,23 @@ class TrackGenerator {
 
         while (path.Count > 0) {
             SearchNode node = path.Pop();
+            SearchNode next = null;
+            if (path.Count > 0) {
+                next = path.Peek();
+            }
 
-            track.Add(new TrackNode(node.pos, node.rotation, chunkPrefabs.chunkStraight));
+            int heightDiff = 0;
+            TrackChunk.ChunkType chunkType = TrackChunk.ChunkType.STRAIGHT;
+
+            if (next != null) {
+                heightDiff = next.parentHeightDiff;
+                chunkType = next.parentType;
+            }
+
+            TrackNode trackNode = new TrackNode(node.pos, node.rotation);
+            trackNode.heightDiff = heightDiff;
+            trackNode.chunkType = chunkType;
+            track.Add(trackNode);
         }
     }
 
@@ -365,7 +388,8 @@ class TrackGenerator {
 
     private void InstanceChunkClones(HashSet<TrackNode> nodes) {
         foreach (TrackNode node in nodes) {
-            GameObject chunkClone = Object.Instantiate(node.trackChunk.gameObject);
+            GameObject chunkPrefab = GetChunkPrefab(node.chunkType, node.heightDiff);
+            GameObject chunkClone = Object.Instantiate(chunkPrefab);
             chunkClone.transform.SetParent(trackBase.transform);
 
             chunkClone.transform.position = new Vector3(

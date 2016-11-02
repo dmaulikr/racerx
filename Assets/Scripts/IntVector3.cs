@@ -27,4 +27,8 @@ struct IntVector3 {
         IntVector3 vec = (IntVector3)obj;
         return vec.x == x && vec.y == y && vec.z == z;
     }
+
+    public override string ToString() {
+        return "[" + x.ToString() + ", " + y.ToString() + ", " + z.ToString() + "]";
+    }
 }

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System;
 
 public class TrackController : MonoBehaviour {
@@ -21,23 +20,15 @@ public class TrackController : MonoBehaviour {
     public float difficulty = 0.5f;
     public int seed = 42;
 
-    // Use this for initialization
-    void Start () {
-        GenerateTrack(); //remove
-    }
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
-
-    private void CreateTrack(int seed, int length, float difficulty) {
+    public GameObject CreateTrack(int seed, int length, float difficulty, bool ingame) {
         System.Random rand = new System.Random(seed);
+
+        GameObject trackBase = null;
 
         bool done = false;
         while (!done) {
             string name = "RacingTrack" + rand.Next(10000).ToString();
-            GameObject trackBase = new GameObject(name);
+            trackBase = new GameObject(name);
 
             TrackGenerator generator = new TrackGenerator(trackBase, rand, trackChunks);
             generator.difficulty = difficulty;
@@ -47,14 +38,20 @@ public class TrackController : MonoBehaviour {
                 generator.GenerateTrack();
                 done = true;
             } catch (TrackGenerator.InvalidTrackException) {
-               // Destroy(trackBase);
-                Debug.Log("failed");
-                return;
+                if (ingame) {
+                    Destroy(trackBase);
+                }
             }
         }
+
+        return trackBase;
     }
 
     public void GenerateTrack() {
-        CreateTrack(seed, length, difficulty);
+        CreateTrack(seed, length, difficulty, false);
+    }
+
+    public void GenerateTrackRand() {
+        CreateTrack(UnityEngine.Random.Range(1, 100000), length, difficulty, false);
     }
 }

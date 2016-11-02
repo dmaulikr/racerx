@@ -11,5 +11,9 @@ public class TrackControllerEditor : Editor {
         if (GUILayout.Button("Generate Track")) {
             trackController.GenerateTrack();
         }
+
+        if (GUILayout.Button("Generate Track Rand Seed")) {
+            trackController.GenerateTrackRand();
+        }
     }
 }
