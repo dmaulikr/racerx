@@ -1,10 +1,20 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 public class TrackController : MonoBehaviour {
 
+    [Serializable]
+    public class TrackChunkCollection {
+        public GameObject chunkStraight;
+        public GameObject chunkDown;
+        public GameObject chunkUp;
+        public GameObject chunkTurnLeft;
+        public GameObject chunkTurnRight;
+    }
+
     [Header("Track Chunk Prefabs")]
-    public TrackChunk[] trackChunks;
+    public TrackChunkCollection trackChunks;
 
     [Header("Editor Track Generator Parameters")]
     public int length = 5;
@@ -13,21 +23,13 @@ public class TrackController : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-	}
+        GenerateTrack(); //remove
+    }
 	
 	// Update is called once per frame
 	void Update () {
 	
 	}
-
-    private TrackChunk GetRandomChunk(int heightDiff) {
-        TrackChunk chunk;
-        do {
-            chunk = trackChunks[Random.Range(0, trackChunks.Length)];
-        } while (chunk.heightDiff != heightDiff);
-
-        return chunk;
-    }
 
     private void CreateTrack(int seed, int length, float difficulty) {
         System.Random rand = new System.Random(seed);
@@ -45,17 +47,14 @@ public class TrackController : MonoBehaviour {
                 generator.GenerateTrack();
                 done = true;
             } catch (TrackGenerator.InvalidTrackException) {
-                Destroy(trackBase);
+               // Destroy(trackBase);
+                Debug.Log("failed");
+                return;
             }
         }
     }
 
     public void GenerateTrack() {
-        if (trackChunks.Length == 0) {
-            Debug.LogError("No track chunks are avaiable.");
-            return;
-        }
-
         CreateTrack(seed, length, difficulty);
     }
 }

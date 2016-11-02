@@ -11,7 +11,6 @@ public class TrackChunk : MonoBehaviour {
 
     public int heightDiff = 0;
     public ChunkType chunkType = ChunkType.STRAIGHT;
-    public bool hasObstacle = false;
 
 	// Use this for initialization
 	void Start () {
