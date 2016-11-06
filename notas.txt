@@ -1,0 +1,17 @@
+La clase TrackController es la que se usa para generar las pistas, ya hay una puesta en la MainScene.
+
+Tiene un metodo CreateTrack que recibe un seed, una longitud y una dificultad entre 0.0 y 1.0.
+Dificultades bajas generan pistas mas planas con menos curvas, y las mas altas generan pistas con muchas rampas y curvas.
+Se puede llamar desde el juego o desde el editor con unos botones que puse.
+
+El metodo devuelve un RacingTrack, que es un component agregado a un GameObject instanciado.  El RacingTrack adentro tiene una referencia
+a todos los pedazos de la pista (tambien estan agregados como hijos del GameObject).  Tambien tiene una referencia al primer pedazo y al ultimo.
+
+Cada TrackChunk tiene un par de datos que quizas sirvan para generar gameplay.  Cada uno tiene su propio indice de parte dentro de la pista,
+quizas sirva para decidir donde poner checkpoints (cada 10 piezas por ejemplo).
+
+Para mi el setup del juego seria, llamar a CreateTrack, usar el RacingTrack que devuelve para generar checkpoints arriba de algunos chunks,
+espownear el auto arriba del primer chunk, y arrancar un timer que baja todo el tiempo.  Cada checkpoint te sube un poco el tiempo.  Despues
+agregar el menu de pausa y el menu principal.
+
+En MainScene hay un object Car que estuve intentando probar (anda mas o menos).

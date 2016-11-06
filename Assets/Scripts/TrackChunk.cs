@@ -9,16 +9,7 @@ public class TrackChunk : MonoBehaviour {
         CURVE_RIGHT
     }
 
-    public int heightDiff = 0;
+    public int heightDiff = 0; // 1: Ramp up, -1: Ramp down, 0: straight
     public ChunkType chunkType = ChunkType.STRAIGHT;
-
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+    public int chunkIndex = 0;
 }

@@ -86,6 +86,7 @@ class TrackGenerator {
     private GameObject trackBase;
     private System.Random rand;
     private TrackController.TrackChunkCollection chunkPrefabs;
+    private List<TrackNode> trackOrderedChunks;
 
     public float difficulty;
     public int length;
@@ -94,6 +95,7 @@ class TrackGenerator {
         this.trackBase = trackBase;
         this.rand = rand;
         this.chunkPrefabs = chunkPrefabs;
+        trackOrderedChunks = new List<TrackNode>();
     }
 
     private GameObject GetChunkPrefab(TrackChunk.ChunkType direction, int heightDiff) {
@@ -196,6 +198,7 @@ class TrackGenerator {
             node.chunkType = direction;
             node.heightDiff = heightDiff;
             nodes.Add(node);
+            trackOrderedChunks.Add(node);
 
             currentRotation = nextRotation;
             cursor = nextPos;
@@ -214,10 +217,15 @@ class TrackGenerator {
         bool ok = CloseCircuit(nodes, cursor, currentRotation);
 
         // Instance prefabs
-        InstanceChunkClones(nodes);
+        List<TrackChunk> instancedChunks = InstanceChunkClones(trackOrderedChunks);
 
         if (!ok) {
             throw new InvalidTrackException("A* pathfinding timed out.");
+        } else {
+            RacingTrack rt = trackBase.AddComponent<RacingTrack>();
+            rt.trackChunks = instancedChunks;
+            rt.startChunk = instancedChunks[0];
+            rt.endChunk = instancedChunks[instancedChunks.Count - 1];
         }
     }
 
@@ -377,6 +385,7 @@ class TrackGenerator {
             trackNode.heightDiff = heightDiff;
             trackNode.chunkType = chunkType;
             track.Add(trackNode);
+            trackOrderedChunks.Add(trackNode);
         }
     }
 
@@ -386,7 +395,10 @@ class TrackGenerator {
         return r;
     }
 
-    private void InstanceChunkClones(HashSet<TrackNode> nodes) {
+    private List<TrackChunk> InstanceChunkClones(List<TrackNode> nodes) {
+        int i = 0;
+        List<TrackChunk> instancedChunks = new List<TrackChunk>();
+
         foreach (TrackNode node in nodes) {
             GameObject chunkPrefab = GetChunkPrefab(node.chunkType, node.heightDiff);
             GameObject chunkClone = Object.Instantiate(chunkPrefab);
@@ -402,7 +414,12 @@ class TrackGenerator {
             TrackChunk tc = chunkClone.AddComponent<TrackChunk>();
             tc.heightDiff = node.heightDiff;
             tc.chunkType = node.chunkType;
+            tc.chunkIndex = i++;
+
+            instancedChunks.Add(tc);
         }
+
+        return instancedChunks;
     }
 
     private bool HasNodeAt(HashSet<TrackNode> nodes, IntVector3 pos) {

@@ -20,7 +20,7 @@ public class TrackController : MonoBehaviour {
     public float difficulty = 0.5f;
     public int seed = 42;
 
-    public GameObject CreateTrack(int seed, int length, float difficulty, bool ingame) {
+    public RacingTrack CreateTrack(int seed, int length, float difficulty) {
         System.Random rand = new System.Random(seed);
 
         GameObject trackBase = null;
@@ -38,20 +38,20 @@ public class TrackController : MonoBehaviour {
                 generator.GenerateTrack();
                 done = true;
             } catch (TrackGenerator.InvalidTrackException) {
-                if (ingame) {
+                if (Application.isPlaying) {
                     Destroy(trackBase);
                 }
             }
         }
 
-        return trackBase;
+        return trackBase.GetComponent<RacingTrack>();
     }
 
     public void GenerateTrack() {
-        CreateTrack(seed, length, difficulty, false);
+        CreateTrack(seed, length, difficulty);
     }
 
     public void GenerateTrackRand() {
-        CreateTrack(UnityEngine.Random.Range(1, 100000), length, difficulty, false);
+        CreateTrack(UnityEngine.Random.Range(1, 100000), length, difficulty);
     }
 }
