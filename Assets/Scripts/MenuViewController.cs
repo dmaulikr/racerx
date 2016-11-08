@@ -57,9 +57,8 @@ public class MenuViewController : MonoBehaviour {
         if (!String.IsNullOrEmpty(seedInput.text)) {
             seed = int.Parse(seedInput.text);
         }
+        GameViewController.SetTrackParams(difficulty, seed);
         SceneManager.LoadScene("Main");
-        GameViewController.StartGame(difficulty, seed);
-        //TODO Complete this method
     }
 
     public void QuitApplication() {

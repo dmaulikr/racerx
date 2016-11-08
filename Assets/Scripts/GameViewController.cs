@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class GameViewController: MonoBehaviour {
 
@@ -11,6 +12,10 @@ public class GameViewController: MonoBehaviour {
     public float timeMillis = 0f;
     public TrackController trackController;
 
+    public CarController Car;
+    public float difficulty = 0f;
+    public int seed = 0;
+
     void Awake() {
         if(instance != null && instance != this) {
             Destroy(this.gameObject);
@@ -18,6 +23,7 @@ public class GameViewController: MonoBehaviour {
             instance = this;
         }
         trackController = FindObjectOfType<TrackController>();
+        SceneManager.activeSceneChanged += StartGame;
         DontDestroyOnLoad(this);
     }
 
@@ -27,15 +33,23 @@ public class GameViewController: MonoBehaviour {
         }
     }
 
-    public void StartGame(float difficulty, int seed) {
-        if (trackController == null) {
-            trackController = FindObjectOfType<TrackController>();
-        }
-        trackController.difficulty = difficulty;
-        trackController.seed = seed != 0 ? seed : UnityEngine.Random.Range(1, 100000);
-        trackController.GenerateTrack();
+    public void SetTrackParams(float difficulty, int seed) {
+        this.difficulty = difficulty;
+        this.seed = seed;
     }
 
+    public void StartGame(Scene old, Scene current) {
+        if (current.name == "Main") {
+            if (trackController == null) {
+                trackController = FindObjectOfType<TrackController>();
+            }
+            trackController.difficulty = difficulty;
+            trackController.seed = seed != 0 ? seed : UnityEngine.Random.Range(1, 100000);
+            trackController.GenerateTrack();
+            Instantiate(Car);
+        }
+    }
+    
     public void FinishGame() {
 
     }
