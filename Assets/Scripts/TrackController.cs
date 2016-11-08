@@ -15,6 +15,7 @@ public class TrackController : MonoBehaviour {
     [Header("Track Chunk Prefabs")]
     public TrackChunkCollection trackChunks;
     public Checkpoint checkpoint;
+    public Finish finish;
 
     [Header("Checkpoint Parameters")]
     public float checkpointFrequency = 1 / 10f;
@@ -54,44 +55,48 @@ public class TrackController : MonoBehaviour {
 
     public void GenerateTrack() {
         RacingTrack racingTrack = CreateTrack(seed, length, difficulty);
-        GenerateCheckPointsAndStart(racingTrack);
+        generateCheckPointsAndStart(racingTrack);
     }
 
     public void GenerateTrackRand() {
         RacingTrack racingTrack = CreateTrack(UnityEngine.Random.Range(1, 100000), length, difficulty);
-        GenerateCheckPointsAndStart(racingTrack);
+        generateCheckPointsAndStart(racingTrack);
     }
 
-    public void GenerateCheckPointsAndStart(RacingTrack racingTrack) {
+    private void generateCheckPointsAndStart(RacingTrack racingTrack) {
         int checkpointIndex = 0;
-        //We don't want checkpoints in the last chunks
         for(int i = 1; i < racingTrack.trackChunks.Count - 1/checkpointFrequency; i++) {
             TrackChunk chunk = racingTrack.trackChunks[i];
             if((i * checkpointFrequency) % 1 <= 0.01) {
                 Checkpoint clone = Instantiate(checkpoint, chunk.transform) as Checkpoint;
-                
-                switch(chunk.chunkType) {
-                    case TrackChunk.ChunkType.CURVE_LEFT:
-                        clone.transform.localPosition = new Vector3(-6, 0, -5);
-                        break;
-                    case TrackChunk.ChunkType.CURVE_RIGHT:
-                        clone.transform.localPosition = new Vector3(6, 0, -5);
-                        break;
-                    case TrackChunk.ChunkType.STRAIGHT:
-                        if (chunk.heightDiff == 1) {
-                            clone.transform.localPosition = new Vector3(0, 5, 0);
-                        } else if (chunk.heightDiff == -1) {
-                            clone.transform.localPosition = new Vector3(0, -5, 0);
-                        } else {
-                            clone.transform.localPosition = Vector3.zero;
-                        }
-                        break;
-                }
+                setFlagPosition(chunk, clone.transform);
                 clone.checkpointIndex = checkpointIndex;
                 checkpointIndex++;
             }
         }
         lastCheckpoint = checkpointIndex;
-        //TODO Generate Start/End Flag
+        TrackChunk finishChunk = racingTrack.trackChunks[0];
+        Finish finishFlag = Instantiate(finish, finishChunk.transform) as Finish;
+        setFlagPosition(finishChunk, finishFlag.transform);
+    }
+
+    private void setFlagPosition(TrackChunk trackChunk, Transform transform) {
+        switch(trackChunk.chunkType) {
+            case TrackChunk.ChunkType.CURVE_LEFT:
+                transform.localPosition = new Vector3(-6, 0, -5);
+                break;
+            case TrackChunk.ChunkType.CURVE_RIGHT:
+                transform.localPosition = new Vector3(6, 0, -5);
+                break;
+            case TrackChunk.ChunkType.STRAIGHT:
+                if(trackChunk.heightDiff == 1) {
+                    transform.localPosition = new Vector3(0, 5, 0);
+                } else if(trackChunk.heightDiff == -1) {
+                    transform.localPosition = new Vector3(0, -5, 0);
+                } else {
+                    transform.localPosition = Vector3.zero;
+                }
+                break;
+        }
     }
 }
