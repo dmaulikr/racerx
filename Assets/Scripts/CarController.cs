@@ -18,7 +18,7 @@ public class CarController : MonoBehaviour {
     public AxleInfo[] axleInfos;
     public float maxMotorTorque;
     public float maxSteeringAngle;
-    public int lastCheckpoint = 0;
+    public int lastCheckpoint = -1;
 
     public void ApplyLocalPositionToVisuals(WheelCollider collider) {
         if (collider.transform.childCount == 0) {
