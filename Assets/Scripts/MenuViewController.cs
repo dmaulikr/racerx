@@ -8,6 +8,7 @@ public class MenuViewController : MonoBehaviour {
     public GameObject MainPanel;
     public GameObject DifficultyPanel;
     public GameObject StartPanel;
+    public GameObject Logo;
 
     public InputField seedInput;
 
@@ -38,7 +39,7 @@ public class MenuViewController : MonoBehaviour {
     }
 
     public void SetEasyDifficulty() {
-        difficulty = 0.2f;
+        difficulty = 0.1f;
         ShowStartPanel();
     }
 
@@ -53,6 +54,10 @@ public class MenuViewController : MonoBehaviour {
     }
 
     public void StartGame() {
+        MainPanel.SetActive(false);
+        DifficultyPanel.SetActive(false);
+        StartPanel.SetActive(false);
+        Logo.SetActive(false);
         int seed = 0;
         if (!String.IsNullOrEmpty(seedInput.text)) {
             seed = int.Parse(seedInput.text);

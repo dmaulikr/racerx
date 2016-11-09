@@ -18,7 +18,7 @@ public class CarController : MonoBehaviour {
     public AxleInfo[] axleInfos;
     public float maxMotorTorque;
     public float maxSteeringAngle;
-    public int lastCheckpoint = -1;
+    public Checkpoint lastCheckpoint = null;
 
     public void ApplyLocalPositionToVisuals(WheelCollider collider) {
         if (collider.transform.childCount == 0) {
@@ -36,6 +36,10 @@ public class CarController : MonoBehaviour {
     }
 
     public void FixedUpdate() {
+        if (transform.position.y < -100) {
+            GameViewController gameViewController = FindObjectOfType<GameViewController>() as GameViewController;
+            gameViewController.RestartCarPosition();
+        }
         float motor = maxMotorTorque * -Input.GetAxis("Vertical");
         float steering = maxSteeringAngle * Input.GetAxis("Horizontal");
 
@@ -52,4 +56,5 @@ public class CarController : MonoBehaviour {
             ApplyLocalPositionToVisuals(axleInfo.rightWheel);
         }
     }
+
 }

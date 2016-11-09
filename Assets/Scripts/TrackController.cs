@@ -53,14 +53,16 @@ public class TrackController : MonoBehaviour {
         return trackBase.GetComponent<RacingTrack>();
     }
 
-    public void GenerateTrack() {
+    public RacingTrack GenerateTrack() {
         RacingTrack racingTrack = CreateTrack(seed, length, difficulty);
         generateCheckPointsAndStart(racingTrack);
+        return racingTrack;
     }
 
-    public void GenerateTrackRand() {
+    public RacingTrack GenerateTrackRand() {
         RacingTrack racingTrack = CreateTrack(UnityEngine.Random.Range(1, 100000), length, difficulty);
         generateCheckPointsAndStart(racingTrack);
+        return racingTrack;
     }
 
     private void generateCheckPointsAndStart(RacingTrack racingTrack) {
@@ -74,7 +76,7 @@ public class TrackController : MonoBehaviour {
                 checkpointIndex++;
             }
         }
-        lastCheckpoint = checkpointIndex;
+        lastCheckpoint = checkpointIndex-1;
         TrackChunk finishChunk = racingTrack.trackChunks[0];
         Finish finishFlag = Instantiate(finish, finishChunk.transform) as Finish;
         setFlagPosition(finishChunk, finishFlag.transform);
