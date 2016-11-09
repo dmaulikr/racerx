@@ -5,6 +5,14 @@ using UnityEngine.UI;
 
 public class MenuViewController : MonoBehaviour {
 
+    private static MenuViewController instance;
+
+    public static MenuViewController Instance {
+        get {
+            return instance;
+        }
+    }
+
     public GameObject MainPanel;
     public GameObject DifficultyPanel;
     public GameObject StartPanel;
@@ -14,13 +22,23 @@ public class MenuViewController : MonoBehaviour {
 
     public float difficulty = 0.2f;
 
-    private GameViewController GameViewController;
+    void Awake() {
+        if(instance != null && instance != this) {
+            Destroy(this.gameObject);
+        } else {
+            instance = this;
+        }
+        SceneManager.activeSceneChanged += StartGame;
+    }
 
-    public void Awake() {
-        GameViewController = FindObjectOfType<GameViewController>();
+    public void StartGame(Scene old, Scene current) {
+        if(current.name == "Menu") {
+            ShowMainPanel();
+        }
     }
 
     public void ShowMainPanel() {
+        Logo.SetActive(true);
         MainPanel.SetActive(true);
         DifficultyPanel.SetActive(false);
         StartPanel.SetActive(false);
@@ -62,7 +80,7 @@ public class MenuViewController : MonoBehaviour {
         if (!String.IsNullOrEmpty(seedInput.text)) {
             seed = int.Parse(seedInput.text);
         }
-        GameViewController.SetTrackParams(difficulty, seed);
+        GameViewController.Instance.SetTrackParams(difficulty, seed);
         SceneManager.LoadScene("Main");
     }
 

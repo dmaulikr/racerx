@@ -11,7 +11,7 @@ public class Checkpoint : MonoBehaviour {
         if(carController != null && !passed && (carController.lastCheckpoint == null || Mathf.Abs(carController.lastCheckpoint.checkpointIndex - checkpointIndex) == 1)) {
             carController.lastCheckpoint = this;
             passed = true;
-            GameViewController gameViewController = FindObjectOfType<GameViewController>();
+            GameViewController gameViewController = GameViewController.Instance;
             if (gameViewController != null) {
                 gameViewController.SetCheckpoint(checkpointIndex);
             }

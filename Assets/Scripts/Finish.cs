@@ -8,7 +8,7 @@ public class Finish : MonoBehaviour {
         CarController carController = other.transform.parent.gameObject.GetComponent<CarController>();
         if(carController != null && carController.lastCheckpoint.checkpointIndex == 0 && !passed) {
             this.passed = true;
-            GameViewController gameViewController = FindObjectOfType<GameViewController>();
+            GameViewController gameViewController = GameViewController.Instance;
             if (gameViewController != null) {
                 gameViewController.FinishGame();
             }

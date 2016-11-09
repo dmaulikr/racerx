@@ -7,21 +7,29 @@ public class GameViewController: MonoBehaviour {
 
     private static GameViewController instance;
 
-    public static GameViewController Instance { get { return instance; } }
+    public static GameViewController Instance { get {
+            return instance;
+    } }
 
     public bool playing = false;
     public float timeMillis = 0f;
     public TrackController trackController;
 
     public GameObject InGamePanel;
+    public GameObject WinPanel;
     public Text time;
     public Text checkpoints;
+    public Text bestScore;
 
     public CarController Car;
     public float difficulty = 0f;
     public int seed = 0;
 
     public int lastCheckpoint = 0;
+
+    private bool win = false;
+    private int currentCheckpoint = 0;
+    private RacingTrack currentTrack;
 
     void Awake() {
         if(instance != null && instance != this) {
@@ -38,8 +46,11 @@ public class GameViewController: MonoBehaviour {
         if (playing) {
             timeMillis += Time.deltaTime * 1000;
             updateTimeDisplay();
-            if(Input.GetKeyDown(KeyCode.R)) {
+            if (Input.GetKeyDown(KeyCode.R)) {
                 RestartCarPosition();
+            }
+            if (Input.GetKeyDown(KeyCode.Q)) {
+                FinishGame();
             }
         }
     }
@@ -52,6 +63,7 @@ public class GameViewController: MonoBehaviour {
     }
 
     public void SetCheckpoint(int current) {
+        currentCheckpoint = current;
         checkpoints.text = (lastCheckpoint - current + 1).ToString() + "/" + (lastCheckpoint+2).ToString();
     }
 
@@ -67,17 +79,54 @@ public class GameViewController: MonoBehaviour {
             }
             trackController.difficulty = difficulty;
             trackController.seed = seed != 0 ? seed : UnityEngine.Random.Range(1, 100000);
-            trackController.GenerateTrack();
+            currentTrack = trackController.GenerateTrack();
             lastCheckpoint = trackController.lastCheckpoint;
             Instantiate(Car);
             playing = true;
             InGamePanel.SetActive(true);
             SetCheckpoint(lastCheckpoint+1);
+            SetScore();
         }
+    }
+
+    public void SetScore() {
+        Score score = ScoreController.Instance.GetScore(seed, difficulty);
+        if (score == null) {
+            bestScore.text = "None";
+        } else {
+            string checkpointScore = (lastCheckpoint - score.Checkpoints + 1).ToString() + "/" + (lastCheckpoint + 2).ToString();
+            string minutes = Mathf.FloorToInt((score.Time / 1000) / 60).ToString();
+            string seconds = Mathf.FloorToInt((score.Time / 1000) % 60).ToString();
+            string millis = Mathf.FloorToInt(score.Time % 60).ToString();
+            string timeScore = minutes + ":" + ((seconds.Length == 1) ? "0" + seconds : seconds) + ":" + ((millis.Length == 1) ? "0" + millis : millis);
+            bestScore.text = checkpointScore + " " + timeScore;
+        }
+    }
+
+    public void WinGame() {
+        win = true;
+        FinishGame();
     }
     
     public void FinishGame() {
+        ScoreController.Instance.SetScore(seed, trackController.difficulty, lastCheckpoint - currentCheckpoint + 1, timeMillis);
+        playing = false;
+        CarController oldCar = FindObjectOfType<CarController>();
+        if(oldCar != null) {
+            Destroy(oldCar.gameObject);
+        }
+        Destroy(currentTrack.gameObject);
+        InGamePanel.SetActive(false);
+        if (win) {
+            WinPanel.SetActive(true);
+        } else {
+            BackToMenu();
+        }
+    }
 
+    public void BackToMenu() {
+        WinPanel.SetActive(false);
+        SceneManager.LoadScene("Menu");
     }
 
     public void RestartCarPosition() {

@@ -37,7 +37,7 @@ public class CarController : MonoBehaviour {
 
     public void FixedUpdate() {
         if (transform.position.y < -100) {
-            GameViewController gameViewController = FindObjectOfType<GameViewController>() as GameViewController;
+            GameViewController gameViewController = GameViewController.Instance;
             gameViewController.RestartCarPosition();
         }
         float motor = maxMotorTorque * -Input.GetAxis("Vertical");
