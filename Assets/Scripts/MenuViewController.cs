@@ -27,11 +27,11 @@ public class MenuViewController : MonoBehaviour {
             Destroy(this.gameObject);
         } else {
             instance = this;
+            SceneManager.activeSceneChanged += StartMenu;
         }
-        SceneManager.activeSceneChanged += StartGame;
     }
 
-    public void StartGame(Scene old, Scene current) {
+    public void StartMenu(Scene old, Scene current) {
         if(current.name == "Menu") {
             ShowMainPanel();
         }

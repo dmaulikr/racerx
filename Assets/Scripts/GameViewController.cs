@@ -28,6 +28,7 @@ public class GameViewController: MonoBehaviour {
     public int lastCheckpoint = 0;
 
     private bool win = false;
+    private bool inGame = false;
     private int currentCheckpoint = 0;
     private RacingTrack currentTrack;
 
@@ -36,10 +37,10 @@ public class GameViewController: MonoBehaviour {
             Destroy(this.gameObject);
         } else {
             instance = this;
+            trackController = FindObjectOfType<TrackController>();
+            SceneManager.activeSceneChanged += StartGame;
+            DontDestroyOnLoad(this);
         }
-        trackController = FindObjectOfType<TrackController>();
-        SceneManager.activeSceneChanged += StartGame;
-        DontDestroyOnLoad(this);
     }
 
     public void Update() {
@@ -73,7 +74,8 @@ public class GameViewController: MonoBehaviour {
     }
 
     public void StartGame(Scene old, Scene current) {
-        if (current.name == "Main") {
+        if (current.name == "Main" && !inGame) {
+            inGame = true;
             if (trackController == null) {
                 trackController = FindObjectOfType<TrackController>();
             }
@@ -111,11 +113,6 @@ public class GameViewController: MonoBehaviour {
     public void FinishGame() {
         ScoreController.Instance.SetScore(seed, trackController.difficulty, lastCheckpoint - currentCheckpoint + 1, timeMillis);
         playing = false;
-        CarController oldCar = FindObjectOfType<CarController>();
-        if(oldCar != null) {
-            Destroy(oldCar.gameObject);
-        }
-        Destroy(currentTrack.gameObject);
         InGamePanel.SetActive(false);
         if (win) {
             WinPanel.SetActive(true);
@@ -126,6 +123,7 @@ public class GameViewController: MonoBehaviour {
 
     public void BackToMenu() {
         WinPanel.SetActive(false);
+        inGame = false;
         SceneManager.LoadScene("Menu");
     }
 
