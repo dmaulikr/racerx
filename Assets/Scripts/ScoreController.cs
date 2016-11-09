@@ -42,41 +42,26 @@ public class ScoreController : MonoBehaviour {
     }
 
     public Score GetScore(int seed, float difficulty) {
-        Score score;
-        if (scores.TryGetValue(seed + "-" + difficulty, out score)) {
-            Debug.Log("GetScore found " + seed + "-" + difficulty);
+        string key = seed + "-" + difficulty;
+        int checkpoints = PlayerPrefs.GetInt(key + "checkpoints", -1);
+        if (checkpoints != -1) {
+            Score score = new Score();
+            score.LevelSeed = seed;
+            score.LevelDifficulty = difficulty;
+            score.Checkpoints = checkpoints;
+            score.Time = PlayerPrefs.GetFloat(key + "time", 0);
             return score;
         }
-        Debug.Log("GetScore not found " + seed + "-" + difficulty + " from " + JsonUtility.ToJson(scores));
         return null;
     }
 
     public void SetScore(int seed, float difficulty, int checkpoints, float time) {
-        Debug.Log("SetScore " + seed + "-" + difficulty);
-        Score score = null;
-        bool scoreExists = false;
-        if (scores.ContainsKey(seed + "-" + difficulty)) {
-            score = scores[seed + "-" + difficulty];
-            scoreExists = true;
-        }
+        Score score = GetScore(seed, difficulty);
+        bool scoreExists = score != null;
         if (!scoreExists || checkpoints > score.Checkpoints || (checkpoints == score.Checkpoints && time < score.Time)) {
-            Score newScore = new Score();
-            newScore.LevelSeed = seed;
-            newScore.LevelDifficulty = difficulty;
-            newScore.Checkpoints = checkpoints;
-            newScore.Time = time;
-            if (!scoreExists) {
-                newScore.Index = scoresAmount;
-                scoresAmount++;
-            } else {
-                newScore.Index = score.Index;
-            }
-            scores.Add(newScore.LevelSeed + "-" + newScore.LevelDifficulty, newScore);
-            Debug.Log("Updating dict " + JsonUtility.ToJson(scores) + " with " + scores[newScore.LevelSeed + "-" + newScore.LevelDifficulty]);
-            PlayerPrefs.SetInt("seed" + newScore.Index, newScore.LevelSeed);
-            PlayerPrefs.SetFloat("difficulty" + newScore.Index, newScore.LevelDifficulty);
-            PlayerPrefs.SetInt("checkpoints" + newScore.Index, newScore.Checkpoints);
-            PlayerPrefs.SetFloat("time" + newScore.Index, newScore.Time);
+            string key = seed + "-" + difficulty;
+            PlayerPrefs.SetFloat(key + "time", time);
+            PlayerPrefs.SetInt(key + "checkpoints", checkpoints);
         }
     }
 }

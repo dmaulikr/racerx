@@ -96,7 +96,7 @@ public class GameViewController: MonoBehaviour {
         if (score == null) {
             bestScore.text = "None";
         } else {
-            string checkpointScore = (lastCheckpoint - score.Checkpoints + 1).ToString() + "/" + (lastCheckpoint + 2).ToString();
+            string checkpointScore = score.Checkpoints + "/" + (lastCheckpoint + 2).ToString();
             string minutes = Mathf.FloorToInt((score.Time / 1000) / 60).ToString();
             string seconds = Mathf.FloorToInt((score.Time / 1000) % 60).ToString();
             string millis = Mathf.FloorToInt(score.Time % 60).ToString();
@@ -111,12 +111,14 @@ public class GameViewController: MonoBehaviour {
     }
     
     public void FinishGame() {
-        ScoreController.Instance.SetScore(seed, trackController.difficulty, lastCheckpoint - currentCheckpoint + 1, timeMillis);
         playing = false;
         InGamePanel.SetActive(false);
         if (win) {
+            ScoreController.Instance.SetScore(seed, trackController.difficulty, (lastCheckpoint - currentCheckpoint + 2), timeMillis);
+            win = false;
             WinPanel.SetActive(true);
         } else {
+            ScoreController.Instance.SetScore(seed, trackController.difficulty, (lastCheckpoint - currentCheckpoint + 1), timeMillis);
             BackToMenu();
         }
     }

@@ -10,7 +10,7 @@ public class Finish : MonoBehaviour {
             this.passed = true;
             GameViewController gameViewController = GameViewController.Instance;
             if (gameViewController != null) {
-                gameViewController.FinishGame();
+                gameViewController.WinGame();
             }
         }
     }
