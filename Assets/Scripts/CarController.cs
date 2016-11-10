@@ -40,8 +40,8 @@ public class CarController : MonoBehaviour {
             GameViewController gameViewController = GameViewController.Instance;
             gameViewController.RestartCarPosition();
         }
-        float motor = maxMotorTorque * -Input.GetAxis("Vertical");
-        float steering = maxSteeringAngle * Input.GetAxis("Horizontal");
+        float motor = maxMotorTorque * -Input.GetAxisRaw("Vertical");
+        float steering = maxSteeringAngle * Input.GetAxisRaw("Horizontal");
 
         foreach (AxleInfo axleInfo in axleInfos) {
             if (axleInfo.steering) {
